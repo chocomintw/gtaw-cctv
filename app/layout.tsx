@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Noto_Sans } from "next/font/google";
 import "./globals.css";
+import "./styles/marker-cluster.css";
 
 const notoSans = Noto_Sans({variable:'--font-sans'});
 

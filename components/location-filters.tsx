@@ -1,7 +1,7 @@
 // app/components/location-filters.tsx
 "use client";
 
-import { useEmergencyStore } from "../stores/emergency-store";
+import { useCCTVStore } from "@/stores/cctv-store";
 import {
   getAllLocationTypes,
   getIconForType,
@@ -14,7 +14,7 @@ import { Card, CardContent } from "./ui/card";
 
 export default function LocationFilters() {
   const { filter, setFilter, selectedTypes, toggleLocationType, resetFilters } =
-    useEmergencyStore();
+    useCCTVStore();
   const allTypes = getAllLocationTypes();
 
   return (

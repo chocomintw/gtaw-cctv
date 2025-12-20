@@ -1,7 +1,7 @@
 // app/components/location-list.tsx
 "use client";
 
-import { useEmergencyStore } from "../stores/emergency-store";
+import { useCCTVStore } from "../stores/cctv-store";
 import {
   Card,
   CardContent,
@@ -11,7 +11,6 @@ import {
 } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Switch } from "./ui/switch";
-import { getIconForType, getColorsForType } from "@/app/data/locations";
 
 export default function LocationList() {
   const {
@@ -19,7 +18,7 @@ export default function LocationList() {
     activeLocation,
     setActiveLocation,
     toggleLocation,
-  } = useEmergencyStore();
+  } = useCCTVStore();
 
   return (
     <Card>
