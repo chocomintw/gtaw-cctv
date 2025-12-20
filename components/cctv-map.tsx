@@ -13,7 +13,6 @@ import {
   Truck,
   FlameKindling,
   Stethoscope,
-  LifeBuoy,
   MapPin,
   AlertCircle,
 } from "lucide-react";
