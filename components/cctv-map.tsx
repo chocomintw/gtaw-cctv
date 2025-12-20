@@ -1,4 +1,3 @@
-// app/components/cctv-map.tsx
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
@@ -6,11 +5,21 @@ import { MapContainer, TileLayer, Marker, Popup, Circle } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "../styles/leaflet.css";
-import { useCCTVStore } from "../stores/cctv-store";
+import { useEmergencyStore } from "../stores/emergency-store"; // Changed to emergency store
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Video, MapPin, Eye, AlertCircle } from "lucide-react";
+import {
+  Building,
+  Lock,
+  Truck,
+  FlameKindling,
+  Stethoscope,
+  LifeBuoy,
+  MapPin,
+  AlertCircle,
+} from "lucide-react";
 import { Badge } from "./ui/badge";
 import MarkerClusterGroup from "react-leaflet-markercluster";
+import { getIconForType, getColorsForType } from "@/app/data/locations";
 
 // Fix for Leaflet icons in Next.js
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -21,15 +30,22 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "/leaflet/images/marker-shadow.png",
 });
 
-// Custom CCTV marker icon
-const createCCTVIcon = (isActive: boolean, isSelected: boolean) => {
+// Custom emergency marker icon
+const createEmergencyIcon = (
+  type: string,
+  isActive: boolean,
+  isSelected: boolean,
+) => {
+  const colors = getColorsForType(type as any);
+
   return L.divIcon({
     html: `
       <div class="custom-marker ${isSelected ? "active" : ""}"
-           style="background-color: ${isActive ? "#4f46e5" : "#6b7280"};">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
-          <path d="M18 10.5V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4.5l4 4v-11l-4 4zm-8 5.5a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
-        </svg>
+           style="background-color: ${colors.bg.split(" ")[0].replace("bg-", "")};
+                  border-color: ${colors.border.split(" ")[0].replace("border-", "")};">
+        <div style="color: ${colors.text.split(" ")[0].replace("text-", "")};">
+          ${type.charAt(0).toUpperCase()}
+        </div>
       </div>
     `,
     className: "custom-div-icon",
@@ -50,7 +66,7 @@ const defaultCenter: [number, number] = [0, 0];
 const defaultZoom = 11;
 
 export default function CCTVMap() {
-  const { locations, activeLocation, setActiveLocation } = useCCTVStore();
+  const { locations, activeLocation, setActiveLocation } = useEmergencyStore(); // Changed store
   const [mapReady, setMapReady] = useState(false);
 
   // Filter active cameras
@@ -59,10 +75,22 @@ export default function CCTVMap() {
     [locations],
   );
 
-  // GTA coordinates conversion if needed
+  // GTA coordinates conversion - adjusted for emergency locations
   const convertToMapCoords = (x: number, y: number): [number, number] => {
-    // Adjust this based on your original project's coordinate system
-    return [y / 100, x / 100]; // Simplified conversion
+    // Convert GTA coordinates to map coordinates
+    // Your original coordinates are large numbers, so we need to scale them down
+    return [y / 100, x / 100];
+  };
+
+  // Get the right Lucide icon for each location type
+  const getLocationIcon = (type: string) => {
+    const Icon = getIconForType(type as any);
+    return Icon;
+  };
+
+  // Get color classes for location type
+  const getLocationColors = (type: string) => {
+    return getColorsForType(type as any);
   };
 
   // Load leaflet CSS dynamically
@@ -72,10 +100,10 @@ export default function CCTVMap() {
 
   if (!mapReady) {
     return (
-      <Card className="h-125 flex items-center justify-center">
+      <Card className="h-[500px] flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-neutral-600">Loading map...</p>
+          <p className="mt-4 text-neutral-600">Loading emergency map...</p>
         </div>
       </Card>
     );
@@ -86,13 +114,13 @@ export default function CCTVMap() {
       <CardHeader className="border-b">
         <CardTitle className="flex items-center gap-2">
           <MapPin size={20} />
-          CCTV Map Overview
+          Emergency Services Map
           <Badge variant="outline" className="ml-2">
             {activeCameras.length} Active
           </Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-0 h-125">
+      <CardContent className="p-0 h-[500px]">
         <MapContainer
           center={defaultCenter}
           zoom={defaultZoom}
@@ -105,32 +133,37 @@ export default function CCTVMap() {
           scrollWheelZoom={true}
           style={{ zIndex: 1 }}
         >
-          {/* Custom GTA-style tiles or use OpenStreetMap */}
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            // For GTA style map, you might need custom tiles
-            // url="/tiles/{z}/{x}/{y}.png"
           />
 
-          {/* Marker Cluster Group */}
           <MarkerClusterGroup
             chunkedLoading
             showCoverageOnHover={false}
             spiderfyOnMaxZoom={true}
             maxClusterRadius={50}
           >
-            {activeCameras.map((camera) => {
-              const coords = convertToMapCoords(camera.x, camera.y);
-              const isSelected = activeLocation?.id === camera.id;
+            {activeCameras.map((location) => {
+              const coords = convertToMapCoords(
+                location.coordinates[0],
+                location.coordinates[1],
+              );
+              const isSelected = activeLocation?.id === location.id;
+              const colors = getLocationColors(location.type);
+              const Icon = getLocationIcon(location.type);
 
               return (
                 <Marker
-                  key={camera.id}
+                  key={location.id}
                   position={coords}
-                  icon={createCCTVIcon(camera.enabled, isSelected)}
+                  icon={createEmergencyIcon(
+                    location.type,
+                    location.enabled,
+                    isSelected,
+                  )}
                   eventHandlers={{
-                    click: () => setActiveLocation(camera),
+                    click: () => setActiveLocation(location),
                     mouseover: (e) => {
                       e.target.openPopup();
                     },
@@ -139,38 +172,35 @@ export default function CCTVMap() {
                   <Popup className="custom-popup" minWidth={250} maxWidth={250}>
                     <div className="p-2">
                       <div className="flex items-start gap-3">
-                        <div className="p-2 bg-indigo-100 rounded-lg">
-                          <Video className="text-indigo-600" size={20} />
+                        <div className={`p-2 ${colors.bg} rounded-lg`}>
+                          <Icon className={`${colors.text} w-5 h-5`} />
                         </div>
                         <div>
-                          <h3 className="font-bold text-lg">{camera.name}</h3>
+                          <h3 className="font-bold text-lg">{location.name}</h3>
                           <div className="flex items-center gap-2 mt-1">
                             <Badge
-                              variant={camera.enabled ? "default" : "secondary"}
+                              variant={
+                                location.enabled ? "default" : "secondary"
+                              }
+                              className={`${colors.bg} ${colors.text} border-0`}
                             >
-                              {camera.enabled ? "ACTIVE" : "INACTIVE"}
+                              {location.enabled ? "ACTIVE" : "INACTIVE"}
                             </Badge>
-                            {camera.interior && (
-                              <Badge variant="outline">Interior</Badge>
-                            )}
+                            <Badge variant="outline" className={colors.text}>
+                              {location.type.toUpperCase()}
+                            </Badge>
                           </div>
                           <div className="mt-3 space-y-2">
                             <div className="flex items-center gap-2 text-sm">
                               <MapPin size={14} className="text-neutral-400" />
                               <span className="font-mono">
-                                X: {camera.x.toFixed(2)} | Y:{" "}
-                                {camera.y.toFixed(2)}
+                                X: {location.coordinates[0].toFixed(1)} | Y:{" "}
+                                {location.coordinates[1].toFixed(1)}
                               </span>
                             </div>
-                            {camera.rotation && (
-                              <div className="flex items-center gap-2 text-sm">
-                                <Eye size={14} className="text-neutral-400" />
-                                <span>Rotation: {camera.rotation}°</span>
-                              </div>
-                            )}
-                            {camera.description && (
+                            {location.description && (
                               <p className="text-sm text-neutral-600 mt-2">
-                                {camera.description}
+                                {location.description}
                               </p>
                             )}
                           </div>
@@ -179,20 +209,21 @@ export default function CCTVMap() {
                     </div>
                   </Popup>
 
-                  {/* Show camera viewing area circle */}
-                  {camera.rotation && (
-                    <Circle
-                      center={coords}
-                      radius={camera.streamDistance || 100}
-                      pathOptions={{
-                        fillColor: "#4f46e5",
-                        color: "#4f46e5",
-                        fillOpacity: 0.1,
-                        weight: 1,
-                        dashArray: "5, 5",
-                      }}
-                    />
-                  )}
+                  {/* Optional: Show service area circle */}
+                  {location.type === "hospital" ||
+                    (location.type === "fire" && (
+                      <Circle
+                        center={coords}
+                        radius={500} // Service radius
+                        pathOptions={{
+                          fillColor: colors.text.replace("text-", ""),
+                          color: colors.text.replace("text-", ""),
+                          fillOpacity: 0.1,
+                          weight: 1,
+                          dashArray: "5, 5",
+                        }}
+                      />
+                    ))}
                 </Marker>
               );
             })}
@@ -203,16 +234,24 @@ export default function CCTVMap() {
             <div className="leaflet-control leaflet-bar bg-white p-3 rounded-lg shadow-lg">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-full bg-indigo-600"></div>
-                  <span className="text-sm">Active CCTV</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-full bg-gray-500"></div>
-                  <span className="text-sm">Inactive CCTV</span>
+                  <div className="w-4 h-4 rounded-full bg-blue-600"></div>
+                  <span className="text-sm">Police/Government</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 rounded-full bg-red-600"></div>
-                  <span className="text-sm">Selected</span>
+                  <span className="text-sm">Fire Stations</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full bg-green-600"></div>
+                  <span className="text-sm">Hospitals</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full bg-orange-600"></div>
+                  <span className="text-sm">Lifeguard</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full bg-purple-600"></div>
+                  <span className="text-sm">Prisons</span>
                 </div>
                 <div className="border-t pt-2 mt-2">
                   <div className="flex items-center gap-2 text-xs text-neutral-500">
