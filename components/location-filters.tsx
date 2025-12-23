@@ -3,14 +3,12 @@
 
 import { useCCTVStore } from "@/stores/cctv-store";
 import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Search, Filter, X, Fuel, Banknote, Shirt, Target, Smartphone, Building } from "lucide-react";
-import { Card, CardContent } from "./ui/card";
+import { Fuel, Banknote, Shirt, Target, Smartphone, Building } from "lucide-react";
 import type { LocationType } from "@/stores/cctv-store";
 import { LucideIcon } from "lucide-react";
 
 // Define helper functions locally
-const getAllLocationTypes = (): LocationType[] => 
+const getAllLocationTypes = (): LocationType[] =>
   ['gas', 'bank', 'clothing', 'ammunation', 'phone', 'other'];
 
 const getIconForType = (type: LocationType): LucideIcon => {
@@ -26,82 +24,80 @@ const getIconForType = (type: LocationType): LucideIcon => {
 
 const getColorsForType = (type: LocationType) => {
   switch (type) {
-    case 'gas': return { bg: 'bg-orange-100', text: 'text-orange-800', border: 'border-orange-300' };
-    case 'bank': return { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-300' };
-    case 'clothing': return { bg: 'bg-purple-100', text: 'text-purple-800', border: 'border-purple-300' };
-    case 'ammunation': return { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-300' };
-    case 'phone': return { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-300' };
-    default: return { bg: 'bg-gray-100', text: 'text-gray-800', border: 'border-gray-300' };
+    case 'gas': return {
+      bg: 'bg-orange-100 dark:bg-orange-900/30',
+      text: 'text-orange-800 dark:text-orange-400',
+      border: 'border-orange-300 dark:border-orange-800'
+    };
+    case 'bank': return {
+      bg: 'bg-green-100 dark:bg-green-900/30',
+      text: 'text-green-800 dark:text-green-400',
+      border: 'border-green-300 dark:border-green-800'
+    };
+    case 'clothing': return {
+      bg: 'bg-purple-100 dark:bg-purple-900/30',
+      text: 'text-purple-800 dark:text-purple-400',
+      border: 'border-purple-300 dark:border-purple-800'
+    };
+    case 'ammunation': return {
+      bg: 'bg-red-100 dark:bg-red-900/30',
+      text: 'text-red-800 dark:text-red-400',
+      border: 'border-red-300 dark:border-red-800'
+    };
+    case 'phone': return {
+      bg: 'bg-blue-100 dark:bg-blue-900/30',
+      text: 'text-blue-800 dark:text-blue-400',
+      border: 'border-blue-300 dark:border-blue-800'
+    };
+    default: return {
+      bg: 'bg-gray-100 dark:bg-zinc-800',
+      text: 'text-gray-800 dark:text-zinc-400',
+      border: 'border-gray-300 dark:border-zinc-700'
+    };
   }
 };
 
 export default function LocationFilters() {
-  const { filter, setFilter, selectedTypes, toggleLocationType, resetFilters } =
-    useCCTVStore();
+  const { selectedTypes, toggleLocationType, resetFilters } = useCCTVStore();
   const allTypes = getAllLocationTypes();
 
   return (
-    <Card>
-      <CardContent className="p-4">
-        <div className="space-y-4">
-          {/* Search input */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-4 h-4" />
-            <Input
-              placeholder="Search locations..."
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              className="pl-9"
-            />
-            {filter && (
-              <button
-                onClick={() => setFilter("")}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
+    <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 bg-white dark:bg-zinc-900/50 p-1 rounded-xl border border-neutral-200 dark:border-zinc-800 shadow-sm">
+        {allTypes.map((type) => {
+          const Icon = getIconForType(type);
+          const colors = getColorsForType(type);
+          const isSelected = selectedTypes.includes(type);
 
-          {/* Type filters */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Filter className="w-4 h-4 text-neutral-400" />
-              <span className="text-sm font-medium">Filter by type</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {allTypes.map((type) => {
-                const Icon = getIconForType(type);
-                const colors = getColorsForType(type);
-                const isSelected = selectedTypes.includes(type);
+          return (
+            <button
+              key={type}
+              onClick={() => toggleLocationType(type)}
+              className={`
+                flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200
+                ${isSelected
+                  ? `${colors.bg} ${colors.text} shadow-sm ring-1 ring-inset ${colors.border}`
+                  : "text-neutral-500 hover:bg-neutral-100 dark:hover:bg-zinc-800 hover:text-neutral-700 dark:hover:text-neutral-300"
+                }
+              `}
+            >
+              <Icon className="w-3.5 h-3.5" />
+              {type.charAt(0).toUpperCase() + type.slice(1)}
+            </button>
+          );
+        })}
+      </div>
 
-                return (
-                  <Button
-                    key={type}
-                    variant={isSelected ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => toggleLocationType(type)}
-                    className={`gap-2 ${isSelected ? colors.bg + " " + colors.text : ""}`}
-                  >
-                    <Icon className="w-3.5 h-3.5" />
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </Button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Reset filters */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={resetFilters}
-            className="w-full"
-          >
-            Reset all filters
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+      {selectedTypes.length < allTypes.length && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={resetFilters}
+          className="text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+        >
+          Reset
+        </Button>
+      )}
+    </div>
   );
 }

@@ -1,4 +1,4 @@
-// app/page.tsx - Improved layout with larger map
+// app/page.tsx - Improved layout with premium design
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -10,20 +10,10 @@ import CCTVDetails from "@/components/cctv-details";
 import CCTVMap from "@/components/cctv-map";
 import LocationFilters from "@/components/location-filters";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  AlertCircle,
-  Map,
-  List,
-  Grid,
-  Filter,
-  Maximize2,
-  Minimize2,
-} from "lucide-react";
+import { Camera } from "lucide-react";
 
 export default function HomePage() {
   const { loadLocations, activeLocation } = useCCTVStore();
-  const [viewMode, setViewMode] = useState<"map" | "list" | "both">("both");
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const cctvLocations = useMemo(() => convertRawLocations(rawCCTVData), []);
 
@@ -31,227 +21,70 @@ export default function HomePage() {
     loadLocations(cctvLocations);
   }, [loadLocations, cctvLocations]);
 
-  // Toggle fullscreen for map
-  const toggleFullscreen = () => {
-    setIsFullscreen(!isFullscreen);
-  };
-
   return (
-    <main className="min-h-screen bg-linear-to-b from-neutral-50 to-neutral-100 p-4 md:p-8">
-      <div className="max-w-480 mx-auto">
-        {" "}
-        {/* Increased max width */}
-        <CCTVHeader />
-        {/* View Mode Toggle */}
-        <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex gap-2">
-            <button
-              onClick={() => setViewMode("map")}
-              className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-                viewMode === "map"
-                  ? "bg-indigo-600 text-white shadow-md"
-                  : "bg-white text-neutral-700 border hover:bg-neutral-50"
-              }`}
-            >
-              <Map size={16} />
-              Map Only
-            </button>
-            <button
-              onClick={() => setViewMode("list")}
-              className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-                viewMode === "list"
-                  ? "bg-indigo-600 text-white shadow-md"
-                  : "bg-white text-neutral-700 border hover:bg-neutral-50"
-              }`}
-            >
-              <List size={16} />
-              List Only
-            </button>
-            <button
-              onClick={() => setViewMode("both")}
-              className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-                viewMode === "both"
-                  ? "bg-indigo-600 text-white shadow-md"
-                  : "bg-white text-neutral-700 border hover:bg-neutral-50"
-              }`}
-            >
-              <Grid size={16} />
-              Both
-            </button>
-          </div>
+    <main className="min-h-screen bg-neutral-50 dark:bg-neutral-950 relative overflow-x-hidden">
+      {/* Background Mesh Gradient */}
+      <div className="fixed inset-0 z-0 pointer-events-none opacity-40 dark:opacity-20">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-violet-400/30 blur-[100px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-400/30 blur-[100px]" />
+        <div className="absolute top-[40%] left-[40%] w-[30%] h-[30%] rounded-full bg-blue-400/20 blur-[100px]" />
+      </div>
 
-          {/* Fullscreen toggle for map */}
-          {viewMode !== "list" && (
-            <button
-              onClick={toggleFullscreen}
-              className="px-4 py-2 bg-white border rounded-lg flex items-center gap-2 text-neutral-700 hover:bg-neutral-50 transition-colors"
-            >
-              {isFullscreen ? (
-                <>
-                  <Minimize2 size={16} />
-                  Exit Fullscreen
-                </>
-              ) : (
-                <>
-                  <Maximize2 size={16} />
-                  Fullscreen Map
-                </>
-              )}
-            </button>
-          )}
+      <div className="relative z-10 max-w-[1600px] mx-auto p-4 md:p-8 space-y-8">
+        <CCTVHeader />
+
+        {/* Filters Bar */}
+        <div className="flex justify-end animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+          <LocationFilters />
         </div>
-        {/* Main Content - Dynamic layout based on fullscreen */}
-        {isFullscreen ? (
-          // Fullscreen map view
-          <div className="mt-6 relative">
-            <div className="absolute top-4 left-4 z-10">
-              <button
-                onClick={toggleFullscreen}
-                className="px-4 py-2 bg-white/90 backdrop-blur-sm border rounded-lg flex items-center gap-2 text-neutral-700 hover:bg-white transition-colors shadow-lg"
-              >
-                <Minimize2 size={16} />
-                Exit Fullscreen
-              </button>
-            </div>
+
+        {/* Main Content */}
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
+          {/* Map Section */}
+          <div className="rounded-2xl overflow-hidden shadow-xl border border-white/20 dark:border-white/5 h-[700px] xl:h-[800px]">
             <CCTVMap />
           </div>
-        ) : (
-          // Normal layout
-          <div
-            className={`mt-6 grid ${viewMode === "both" ? "grid-cols-1 lg:grid-cols-4" : "grid-cols-1 lg:grid-cols-3"} gap-6`}
-          >
-            {/* Filters Sidebar - Hidden in map-only mode */}
-            {viewMode !== "map" && (
-              <div className="lg:col-span-1">
-                <div className="sticky top-6">
-                  <LocationFilters />
 
-                  {/* Stats card */}
-                  <Card className="mt-6">
-                    <CardContent className="p-4">
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <Filter size={16} className="text-neutral-400" />
-                          <span className="text-sm font-medium">
-                            Quick Stats
-                          </span>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-neutral-600">
-                              Total Cameras
-                            </span>
-                            <span className="font-semibold">
-                              {cctvLocations.length}
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-neutral-600">
-                              Active
-                            </span>
-                            <span className="font-semibold text-green-600">
-                              {
-                                cctvLocations.filter((loc) => loc.enabled)
-                                  .length
-                              }
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-neutral-600">
-                              Inactive
-                            </span>
-                            <span className="font-semibold text-neutral-500">
-                              {
-                                cctvLocations.filter((loc) => !loc.enabled)
-                                  .length
-                              }
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            )}
-
-            {/* Main Content Area */}
-            <div
-              className={`${viewMode === "both" ? "lg:col-span-3" : "lg:col-span-3"} space-y-6`}
-            >
-              {/* Map Section - Larger height */}
-              {viewMode !== "list" && (
-                <div
-                  className={`${viewMode === "map" ? "h-[calc(100vh-200px)]" : "h-150"}`}
-                >
-                  <CCTVMap />
-                </div>
-              )}
-
-              {/* List Section */}
-              {viewMode !== "map" && (
-                <div
-                  className={viewMode === "list" ? "h-[calc(100vh-200px)]" : ""}
-                >
-                  <CCTVList />
-                </div>
-              )}
-
-              {/* Details Panel - Only show if not in map-only fullscreen */}
-              {viewMode !== "map" && (
-                <div>
-                  {activeLocation ? (
-                    <CCTVDetails location={activeLocation} />
-                  ) : (
-                    <Card>
-                      <CardContent className="pt-6">
-                        <div className="flex flex-col items-center justify-center text-center p-8">
-                          <AlertCircle className="h-12 w-12 text-neutral-300 mb-4" />
-                          <h3 className="text-lg font-semibold mb-2">
-                            No Camera Selected
-                          </h3>
-                          <p className="text-neutral-500 text-sm">
-                            Select a camera from the map or list to view its
-                            details.
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-              )}
+          {/* List Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="h-[600px]">
+              <CCTVList />
             </div>
-          </div>
-        )}
-        {/* Quick actions footer */}
-        <div className="mt-8 pt-6 border-t border-neutral-200">
-          <div className="flex flex-wrap items-center justify-between gap-4 text-sm text-neutral-600">
+
+            {/* Details Panel */}
             <div>
-              <span className="font-medium">GTA World CCTV System</span>
-              <span className="mx-2">•</span>
-              <span>{cctvLocations.length} camera locations</span>
-            </div>
-            <div className="flex gap-4">
-              <button
-                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                className="text-indigo-600 hover:text-indigo-800 hover:underline"
-              >
-                Back to top
-              </button>
-              <button
-                onClick={() => {
-                  const element = document.querySelector(".leaflet-container");
-                  if (element) {
-                    (element as HTMLElement).click();
-                  }
-                }}
-                className="text-indigo-600 hover:text-indigo-800 hover:underline"
-              >
-                Focus on map
-              </button>
+              {activeLocation ? (
+                <div className="sticky top-6">
+                  <CCTVDetails location={activeLocation} />
+                </div>
+              ) : (
+                <div className="glass-card p-8 rounded-xl flex flex-col items-center justify-center text-center h-64 sticky top-6">
+                  <div className="w-16 h-16 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center mb-4">
+                    <Camera className="h-8 w-8 text-neutral-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2 text-neutral-900 dark:text-neutral-100">
+                    No Camera Selected
+                  </h3>
+                  <p className="text-neutral-500 dark:text-neutral-400 text-sm max-w-xs">
+                    Select a camera from the map or list to view its live feed details and controls.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
+
+        {/* Footer */}
+        <footer className="mt-12 pt-8 border-t border-neutral-200 dark:border-neutral-800 text-center md:text-left">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-neutral-500 dark:text-neutral-400">
+            <p>© 2025 GTA World CCTV Lookup. All rights reserved.</p>
+            <div className="flex gap-6">
+              <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Back to Top</button>
+              <button className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Privacy Policy</button>
+              <button className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Terms of Service</button>
+            </div>
+          </div>
+        </footer>
       </div>
     </main>
   );

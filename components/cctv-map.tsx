@@ -61,7 +61,7 @@ const GTAW_CONFIG = {
 };
 
 export default function CCTVMap() {
-  const { locations, setActiveLocation } = useCCTVStore();
+  const { filteredLocations, setActiveLocation } = useCCTVStore();
   const [isClient, setIsClient] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [leafletLoaded, setLeafletLoaded] = useState<any>(null);
@@ -78,47 +78,47 @@ export default function CCTVMap() {
   const mapRef = useRef<any>(null);
 
   const activeLocations = useMemo(
-    () => locations.filter((loc) => loc.enabled),
-    [locations],
+    () => filteredLocations.filter((loc) => loc.enabled),
+    [filteredLocations],
   );
 
   const getColorForType = (type: LocationType) => {
     switch (type) {
       case "gas":
         return {
-          text: "text-orange-600",
-          border: "border-orange-300",
-          bg: "bg-orange-100",
+          text: "text-orange-600 dark:text-orange-400",
+          border: "border-orange-300 dark:border-orange-800",
+          bg: "bg-orange-100 dark:bg-orange-900/30",
         };
       case "bank":
         return {
-          text: "text-green-600",
-          border: "border-green-300",
-          bg: "bg-green-100",
+          text: "text-green-600 dark:text-green-400",
+          border: "border-green-300 dark:border-green-800",
+          bg: "bg-green-100 dark:bg-green-900/30",
         };
       case "clothing":
         return {
-          text: "text-purple-600",
-          border: "border-purple-300",
-          bg: "bg-purple-100",
+          text: "text-purple-600 dark:text-purple-400",
+          border: "border-purple-300 dark:border-purple-800",
+          bg: "bg-purple-100 dark:bg-purple-900/30",
         };
       case "ammunation":
         return {
-          text: "text-red-600",
-          border: "border-red-300",
-          bg: "bg-red-100",
+          text: "text-red-600 dark:text-red-400",
+          border: "border-red-300 dark:border-red-800",
+          bg: "bg-red-100 dark:bg-red-900/30",
         };
       case "phone":
         return {
-          text: "text-blue-600",
-          border: "border-blue-300",
-          bg: "bg-blue-100",
+          text: "text-blue-600 dark:text-blue-400",
+          border: "border-blue-300 dark:border-blue-800",
+          bg: "bg-blue-100 dark:bg-blue-900/30",
         };
       default:
         return {
-          text: "text-gray-600",
-          border: "border-gray-300",
-          bg: "bg-gray-100",
+          text: "text-gray-600 dark:text-zinc-400",
+          border: "border-gray-300 dark:border-zinc-700",
+          bg: "bg-gray-100 dark:bg-zinc-800",
         };
     }
   };
@@ -289,29 +289,24 @@ export default function CCTVMap() {
       <CardHeader className="border-b">
         <CardTitle className="flex items-center gap-2">
           <Camera size={20} className="text-indigo-600" />
-          GTA World CCTV Map
+          GTA:World CCTV Map
           <Badge variant="outline" className="ml-2">
-            {activeLocations.length} Active
+            {activeLocations.length} Server-owned CCTVs.
           </Badge>
-          <span className="text-xs text-neutral-500 ml-2 flex items-center gap-1">
-            <MapPin size={12} />
-            Using custom CCTV blips
-          </span>
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0 h-full" ref={mapContainerRef}>
         {leafletLoaded && mapCRS && mapReady && customIcon ? (
           <div className="h-full w-full" key={`map-${mapReady}`}>
             <MapContainer
-              center={GTAW_CONFIG.initialView}
+              center={[-1500, -1000]} // Adjusted to center more on the city
               zoom={GTAW_CONFIG.initialZoom}
               crs={mapCRS}
               className="h-full w-full"
               style={{
                 height: "100%",
                 width: "100%",
-                minHeight: "500px",
-                backgroundColor: "#f0f0f0",
+                backgroundColor: "transparent",
               }}
               minZoom={GTAW_CONFIG.minZoom}
               maxZoom={GTAW_CONFIG.maxZoom}
@@ -336,11 +331,11 @@ export default function CCTVMap() {
 
               {/* Simple Layer Control */}
               <div className="leaflet-top leaflet-right">
-                <div className="leaflet-control leaflet-bar bg-white/95 backdrop-blur-sm p-3 rounded-lg shadow-lg m-4 border">
+                <div className="leaflet-control leaflet-bar bg-white/95 dark:bg-zinc-900/95 backdrop-blur-sm p-3 rounded-lg shadow-lg m-4 border border-neutral-200 dark:border-zinc-800">
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <Layers size={16} className="text-neutral-600" />
-                      <span className="text-sm font-medium">Map Style</span>
+                      <Layers size={16} className="text-neutral-600 dark:text-neutral-400" />
+                      <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Map Style</span>
                     </div>
                     <div className="space-y-2">
                       {(["satellite", "atlas", "street", "grid"] as const).map(
@@ -358,9 +353,9 @@ export default function CCTVMap() {
                                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                 setActiveLayer(e.target.value as any)
                               }
-                              className="text-indigo-600"
+                              className="text-indigo-600 focus:ring-indigo-500"
                             />
-                            <span className="text-sm capitalize">{style}</span>
+                            <span className="text-sm capitalize text-neutral-700 dark:text-neutral-300">{style}</span>
                           </label>
                         ),
                       )}
@@ -392,14 +387,14 @@ export default function CCTVMap() {
                       },
                     }}
                   >
-                    <Popup>
+                    <Popup className="cctv-popup">
                       <div className="p-3 min-w-62.5">
                         <div className="flex items-start gap-3">
                           <div className={`p-2 ${colors.bg} rounded-lg`}>
                             <Camera className={`${colors.text}`} size={20} />
                           </div>
                           <div>
-                            <h3 className="font-bold text-base mb-1">
+                            <h3 className="font-bold text-base mb-1 text-neutral-900 dark:text-neutral-100">
                               {location.name}
                             </h3>
                             <Badge
@@ -411,7 +406,7 @@ export default function CCTVMap() {
                           </div>
                         </div>
                         <div className="space-y-2 mt-3">
-                          <div className="text-sm">
+                          <div className="text-sm text-neutral-700 dark:text-neutral-300">
                             <span className="font-medium">
                               GTA Coordinates:{" "}
                             </span>
@@ -421,11 +416,11 @@ export default function CCTVMap() {
                             </span>
                           </div>
                           {location.description && (
-                            <p className="text-sm text-neutral-600">
+                            <p className="text-sm text-neutral-600 dark:text-neutral-400">
                               {location.description}
                             </p>
                           )}
-                          <div className="pt-2 border-t text-xs text-neutral-500">
+                          <div className="pt-2 border-t border-neutral-200 dark:border-neutral-800 text-xs text-neutral-500 dark:text-neutral-500">
                             <div className="flex items-center gap-1">
                               <Camera size={10} />
                               CCTV Camera #{location.id}
@@ -438,52 +433,7 @@ export default function CCTVMap() {
                 );
               })}
 
-              {/* Map Legend - Updated with CCTV icon */}
-              <div className="leaflet-bottom leaflet-right">
-                <div className="leaflet-control leaflet-bar bg-white/90 backdrop-blur-sm p-3 rounded-lg shadow-lg m-4 border">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Image
-                        width={16}
-                        height={16}
-                        src="/leaflet/images/cctv1.png"
-                        alt="CCTV Icon"
-                      />
-                      <span className="text-sm">CCTV Cameras</span>
-                    </div>
-                    <div className="border-t pt-2 mt-2">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-xs text-neutral-500">
-                          <div className="w-3 h-3 rounded-full bg-orange-600"></div>
-                          <span>Gas Stations</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-neutral-500">
-                          <div className="w-3 h-3 rounded-full bg-green-600"></div>
-                          <span>Banks</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-neutral-500">
-                          <div className="w-3 h-3 rounded-full bg-purple-600"></div>
-                          <span>Clothing</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-neutral-500">
-                          <div className="w-3 h-3 rounded-full bg-red-600"></div>
-                          <span>Ammunation</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-neutral-500">
-                          <div className="w-3 h-3 rounded-full bg-blue-600"></div>
-                          <span>Phone Stores</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="border-t pt-2 mt-2">
-                      <div className="flex items-center gap-2 text-xs text-neutral-500">
-                        <AlertCircle size={12} />
-                        <span>Click CCTV icons for details</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {/* Map Legend Removed */}
             </MapContainer>
           </div>
         ) : (
