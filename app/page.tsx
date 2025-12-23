@@ -37,8 +37,8 @@ export default function HomePage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-neutral-50 to-neutral-100 p-4 md:p-8">
-      <div className="max-w-[1920px] mx-auto">
+    <main className="min-h-screen bg-linear-to-b from-neutral-50 to-neutral-100 p-4 md:p-8">
+      <div className="max-w-480 mx-auto">
         {" "}
         {/* Increased max width */}
         <CCTVHeader />
@@ -182,7 +182,7 @@ export default function HomePage() {
               {/* Map Section - Larger height */}
               {viewMode !== "list" && (
                 <div
-                  className={`${viewMode === "map" ? "h-[calc(100vh-200px)]" : "h-[600px]"}`}
+                  className={`${viewMode === "map" ? "h-[calc(100vh-200px)]" : "h-150"}`}
                 >
                   <CCTVMap />
                 </div>

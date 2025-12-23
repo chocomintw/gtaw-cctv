@@ -15,7 +15,7 @@ const MapContainer = dynamic(
   () => import("react-leaflet").then((mod) => mod.MapContainer),
   {
     ssr: false,
-    loading: () => <div className="h-[500px] bg-neutral-100 animate-pulse" />,
+    loading: () => <div className="h-125 bg-neutral-100 animate-pulse" />,
   },
 );
 
@@ -35,6 +35,7 @@ const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), {
 
 // Import Leaflet CSS
 import "leaflet/dist/leaflet.css";
+import Image from "next/image";
 
 // EXACT transformation from original GTAW map
 const GTAW_CONFIG = {
@@ -272,7 +273,7 @@ export default function CCTVMap() {
 
   if (!isClient) {
     return (
-      <Card className="h-[500px] flex items-center justify-center">
+      <Card className="h-125 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
           <p className="mt-4 text-neutral-600">Loading GTA World map...</p>
@@ -392,7 +393,7 @@ export default function CCTVMap() {
                     }}
                   >
                     <Popup>
-                      <div className="p-3 min-w-[250px]">
+                      <div className="p-3 min-w-62.5">
                         <div className="flex items-start gap-3">
                           <div className={`p-2 ${colors.bg} rounded-lg`}>
                             <Camera className={`${colors.text}`} size={20} />
@@ -442,10 +443,11 @@ export default function CCTVMap() {
                 <div className="leaflet-control leaflet-bar bg-white/90 backdrop-blur-sm p-3 rounded-lg shadow-lg m-4 border">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <img
-                        src="leaflet/images/cctv1.png"
+                      <Image
+                        width={16}
+                        height={16}
+                        src="/leaflet/images/cctv1.png"
                         alt="CCTV Icon"
-                        className="w-4 h-4"
                       />
                       <span className="text-sm">CCTV Cameras</span>
                     </div>
@@ -490,7 +492,7 @@ export default function CCTVMap() {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
               <p className="mt-4 text-neutral-600">Loading CCTV map...</p>
               <div className="mt-4 flex justify-center">
-                <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-lg animate-pulse"></div>
+                <div className="w-8 h-8 bg-linear-to-br from-indigo-500 to-blue-500 rounded-lg animate-pulse"></div>
               </div>
               <p className="text-sm text-neutral-500 mt-2">
                 Loading custom CCTV icons...
