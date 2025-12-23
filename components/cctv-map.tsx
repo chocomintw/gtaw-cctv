@@ -44,10 +44,10 @@ const GTAW_CONFIG = {
   offsetY: 172.8,
 
   tileUrls: {
-    atlas: "https://map.gta.world/mapStyles/styleAtlas/{z}/{x}/{y}.jpg",
-    satellite: "https://map.gta.world/mapStyles/styleSatelite/{z}/{x}/{y}.jpg",
-    grid: "https://map.gta.world/mapStyles/styleGrid/{z}/{x}/{y}.png",
-    street: "https://map.gta.world/mapStyles/styleStreet/{z}/{x}/{y}.jpg",
+    atlas: "mapStyles/styleAtlas/{z}/{x}/{y}.jpg",
+    satellite: "mapStyles/styleSatelite/{z}/{x}/{y}.jpg",
+    grid: "mapStyles/styleGrid/{z}/{x}/{y}.png",
+    street: "mapStyles/styleStreet/{z}/{x}/{y}.jpg",
   },
 
   attribution: "made by monster, george? & chocomint",
