@@ -53,7 +53,7 @@ export default function CCTVList() {
                       {location.enabled ? "Active" : "Inactive"}
                     </Badge>
                     <span className="text-sm text-neutral-500">
-                      {location.x.toFixed(2)}, {location.y.toFixed(2)}
+                      {location.coordinates[0].toFixed(2)}, {location.coordinates[1].toFixed(2)}
                     </span>
                   </div>
                 </div>

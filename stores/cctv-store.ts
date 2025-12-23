@@ -10,6 +10,8 @@ export interface CCTVLocation {
   coordinates: [number, number];
   type: LocationType;
   enabled: boolean;
+  z?: number; // Optional if you have 3D coordinates
+  rotation?: number; // Optional rotation value
 }
 
 interface CCTVStore {

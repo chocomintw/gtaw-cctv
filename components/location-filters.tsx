@@ -1,16 +1,39 @@
-// app/components/location-filters.tsx
+// Quick alternative for location-filters.tsx
 "use client";
 
 import { useCCTVStore } from "@/stores/cctv-store";
-import {
-  getAllLocationTypes,
-  getIconForType,
-  getColorsForType,
-} from "@/app/data/locations";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Search, Filter, X } from "lucide-react";
+import { Search, Filter, X, Fuel, Banknote, Shirt, Target, Smartphone, Building } from "lucide-react";
 import { Card, CardContent } from "./ui/card";
+import type { LocationType } from "@/stores/cctv-store";
+import { LucideIcon } from "lucide-react";
+
+// Define helper functions locally
+const getAllLocationTypes = (): LocationType[] => 
+  ['gas', 'bank', 'clothing', 'ammunation', 'phone', 'other'];
+
+const getIconForType = (type: LocationType): LucideIcon => {
+  switch (type) {
+    case 'gas': return Fuel;
+    case 'bank': return Banknote;
+    case 'clothing': return Shirt;
+    case 'ammunation': return Target;
+    case 'phone': return Smartphone;
+    default: return Building;
+  }
+};
+
+const getColorsForType = (type: LocationType) => {
+  switch (type) {
+    case 'gas': return { bg: 'bg-orange-100', text: 'text-orange-800', border: 'border-orange-300' };
+    case 'bank': return { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-300' };
+    case 'clothing': return { bg: 'bg-purple-100', text: 'text-purple-800', border: 'border-purple-300' };
+    case 'ammunation': return { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-300' };
+    case 'phone': return { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-300' };
+    default: return { bg: 'bg-gray-100', text: 'text-gray-800', border: 'border-gray-300' };
+  }
+};
 
 export default function LocationFilters() {
   const { filter, setFilter, selectedTypes, toggleLocationType, resetFilters } =
