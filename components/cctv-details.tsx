@@ -4,7 +4,15 @@ import { useState } from "react";
 import { CCTVLocation } from "@/stores/cctv-store";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { Shield, Copy, Activity, FileText, Check, CalendarIcon } from "lucide-react";
+import {
+  Shield,
+  Copy,
+  Activity,
+  FileText,
+  Check,
+  CalendarIcon,
+  Camera,
+} from "lucide-react";
 import { Button, buttonVariants } from "./ui/button";
 import { Calendar } from "./ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
@@ -19,19 +27,22 @@ interface CCTVDetailsProps {
 export default function CCTVDetails({ location }: CCTVDetailsProps) {
   // Extract coordinates from the array
   const [x, y] = location.coordinates;
-  // Use optional chaining and default values for optional properties
-  const z = location.z || 0;
-  const rotation = location.rotation || 0;
 
   // Determine badge color based on location type
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'gas': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-800';
-      case 'bank': return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800';
-      case 'clothing': return 'bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-400 border-violet-200 dark:border-violet-800';
-      case 'ammunation': return 'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-400 border-rose-200 dark:border-rose-800';
-      case 'phone': return 'bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-400 border-sky-200 dark:border-sky-800';
-      default: return 'bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-400 border-neutral-200 dark:border-neutral-700';
+      case "gas":
+        return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-800";
+      case "bank":
+        return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800";
+      case "clothing":
+        return "bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-400 border-violet-200 dark:border-violet-800";
+      case "ammunation":
+        return "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-400 border-rose-200 dark:border-rose-800";
+      case "phone":
+        return "bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-400 border-sky-200 dark:border-sky-800";
+      default:
+        return "bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-400 border-neutral-200 dark:border-neutral-700";
     }
   };
 
@@ -66,7 +77,7 @@ export default function CCTVDetails({ location }: CCTVDetailsProps) {
         <div className="absolute inset-0 bg-black/10" />
         <div className="absolute -bottom-6 left-6 p-1 bg-white dark:bg-zinc-900 rounded-2xl shadow-lg">
           <div className="bg-neutral-100 dark:bg-zinc-800 p-3 rounded-xl">
-            <Shield className="text-indigo-600 dark:text-indigo-400 h-8 w-8" />
+            <Camera className="text-indigo-600 dark:text-indigo-400 h-8 w-8" />
           </div>
         </div>
       </div>
@@ -75,9 +86,14 @@ export default function CCTVDetails({ location }: CCTVDetailsProps) {
         {/* Header Info */}
         <div className="flex justify-between items-start">
           <div>
-            <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">{location.name}</h2>
+            <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
+              {location.name}
+            </h2>
             <div className="flex items-center gap-2 mt-2">
-              <Badge variant="outline" className={`${getTypeColor(location.type)} border`}>
+              <Badge
+                variant="outline"
+                className={`${getTypeColor(location.type)} border`}
+              >
                 {location.type.toUpperCase()}
               </Badge>
             </div>
@@ -95,13 +111,17 @@ export default function CCTVDetails({ location }: CCTVDetailsProps) {
         {/* Coordinates Grid - Simplified */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
-            <span className="text-xs text-neutral-400 uppercase tracking-wider font-medium">X Coordinate</span>
+            <span className="text-xs text-neutral-400 uppercase tracking-wider font-medium">
+              X Coordinate
+            </span>
             <div className="p-3 bg-neutral-50 dark:bg-zinc-800/50 rounded-lg border border-neutral-100 dark:border-zinc-800 font-mono text-sm font-medium text-neutral-700 dark:text-neutral-200">
               {x.toFixed(2)}
             </div>
           </div>
           <div className="space-y-1">
-            <span className="text-xs text-neutral-400 uppercase tracking-wider font-medium">Y Coordinate</span>
+            <span className="text-xs text-neutral-400 uppercase tracking-wider font-medium">
+              Y Coordinate
+            </span>
             <div className="p-3 bg-neutral-50 dark:bg-zinc-800/50 rounded-lg border border-neutral-100 dark:border-zinc-800 font-mono text-sm font-medium text-neutral-700 dark:text-neutral-200">
               {y.toFixed(2)}
             </div>
@@ -111,10 +131,17 @@ export default function CCTVDetails({ location }: CCTVDetailsProps) {
         {/* Camera ID Section */}
         <div className="flex items-center justify-between p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800/50">
           <div className="flex items-center gap-3">
-            <Activity size={20} className="text-indigo-600 dark:text-indigo-400" />
+            <Activity
+              size={20}
+              className="text-indigo-600 dark:text-indigo-400"
+            />
             <div>
-              <p className="text-xs text-indigo-600 dark:text-indigo-300 font-medium uppercase">Camera ID</p>
-              <p className="font-mono font-bold text-indigo-900 dark:text-indigo-100">{location.id}</p>
+              <p className="text-xs text-indigo-600 dark:text-indigo-300 font-medium uppercase">
+                Camera ID
+              </p>
+              <p className="font-mono font-bold text-indigo-900 dark:text-indigo-100">
+                {location.id}
+              </p>
             </div>
           </div>
           <Button
@@ -133,7 +160,9 @@ export default function CCTVDetails({ location }: CCTVDetailsProps) {
         <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800 space-y-3">
           <div className="flex items-center gap-2 mb-1">
             <FileText size={16} className="text-indigo-500" />
-            <h4 className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Request Footage</h4>
+            <h4 className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+              Request Footage
+            </h4>
           </div>
 
           <div className="space-y-3">
@@ -146,7 +175,7 @@ export default function CCTVDetails({ location }: CCTVDetailsProps) {
                   className={cn(
                     buttonVariants({ variant: "outline" }),
                     "w-full justify-start text-left font-normal bg-neutral-50 dark:bg-zinc-800/50 border-neutral-200 dark:border-zinc-700",
-                    !date && "text-muted-foreground"
+                    !date && "text-muted-foreground",
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
@@ -174,7 +203,9 @@ export default function CCTVDetails({ location }: CCTVDetailsProps) {
                   />
                   <div className="p-3 border-t border-neutral-100 dark:border-neutral-800 grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Start Time</label>
+                      <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                        Start Time
+                      </label>
                       <input
                         type="time"
                         value={startTime}
@@ -183,7 +214,9 @@ export default function CCTVDetails({ location }: CCTVDetailsProps) {
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">End Time</label>
+                      <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                        End Time
+                      </label>
                       <input
                         type="time"
                         value={endTime}

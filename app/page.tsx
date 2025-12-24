@@ -9,7 +9,6 @@ import CCTVList from "@/components/location-list";
 import CCTVDetails from "@/components/cctv-details";
 import CCTVMap from "@/components/cctv-map";
 import LocationFilters from "@/components/location-filters";
-import { Card, CardContent } from "@/components/ui/card";
 import { Camera } from "lucide-react";
 
 export default function HomePage() {
@@ -66,7 +65,8 @@ export default function HomePage() {
                     No Camera Selected
                   </h3>
                   <p className="text-neutral-500 dark:text-neutral-400 text-sm max-w-xs">
-                    Select a camera from the map or list to view its live feed details and controls.
+                    Select a camera from the map or list to view its live feed
+                    details and controls.
                   </p>
                 </div>
               )}
@@ -79,9 +79,12 @@ export default function HomePage() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-neutral-500 dark:text-neutral-400">
             <p>© 2025 GTA World CCTV Lookup. All rights reserved.</p>
             <div className="flex gap-6">
-              <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Back to Top</button>
-              <button className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Privacy Policy</button>
-              <button className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Terms of Service</button>
+              <button
+                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              >
+                Back to Top
+              </button>
             </div>
           </div>
         </footer>

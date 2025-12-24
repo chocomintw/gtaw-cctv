@@ -1,5 +1,4 @@
 /** eslint-disable @typescript-eslint/no-explicit-any */
-// app/components/cctv-map.tsx - Updated with custom CCTV blips
 "use client";
 
 import { useEffect, useState, useMemo, useCallback, useRef } from "react";
@@ -51,17 +50,22 @@ const GTAW_CONFIG = {
     street: "mapStyles/styleStreet/{z}/{x}/{y}.jpg",
   },
 
-  attribution: "made by monster, george? & chocomint",
+  attribution: "made by monster, george?, paz & chocomint",
 
   initialView: [-1192.7, -135.1] as [number, number],
   initialZoom: 3,
-  minZoom: 1,
+  minZoom: 3,
   maxZoom: 5,
   maxNativeZoom: 5,
 };
 
 export default function CCTVMap() {
-  const { filteredLocations, setActiveLocation } = useCCTVStore();
+  const {
+    filteredLocations,
+    setActiveLocation,
+    targetCoordinates,
+    setTargetCoordinates,
+  } = useCCTVStore();
   const [isClient, setIsClient] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [leafletLoaded, setLeafletLoaded] = useState<any>(null);
@@ -76,6 +80,9 @@ export default function CCTVMap() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapRef = useRef<any>(null);
+  const [searchMarkerCoords, setSearchMarkerCoords] = useState<
+    [number, number] | null
+  >(null);
 
   const activeLocations = useMemo(
     () => filteredLocations.filter((loc) => loc.enabled),
@@ -237,9 +244,9 @@ export default function CCTVMap() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Add some CSS for the custom icon
+  // Add custom CSS for icons and dark theme
   useEffect(() => {
-    // Add custom CSS for the CCTV icon
+    // Add custom CSS for the CCTV icon and dark theme popups
     const style = document.createElement("style");
     style.textContent = `
       .cctv-marker-icon {
@@ -248,6 +255,58 @@ export default function CCTVMap() {
       .cctv-marker-icon:hover {
         filter: drop-shadow(0 4px 8px rgba(59, 130, 246, 0.5)) brightness(1.1);
       }
+
+      /* Dark theme for Leaflet popups */
+      .leaflet-popup-content-wrapper {
+        background-color: white;
+        color: #1f2937;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+
+      .dark .leaflet-popup-content-wrapper {
+        background-color: #18181b;
+        color: #f4f4f5;
+        border: 1px solid #3f3f46;
+      }
+
+      .leaflet-popup-tip {
+        background-color: white;
+      }
+
+      .dark .leaflet-popup-tip {
+        background-color: #18181b;
+      }
+
+      /* Search marker specific styles */
+      .search-marker-popup .leaflet-popup-content-wrapper {
+        background-color: #f0f9ff;
+        border: 2px solid #0ea5e9;
+      }
+
+      .dark .search-marker-popup .leaflet-popup-content-wrapper {
+        background-color: #0c4a6e;
+        border: 2px solid #38bdf8;
+        color: #e0f2fe;
+      }
+
+      /* Layer control dark theme */
+      .leaflet-control {
+        background-color: rgba(255, 255, 255, 0.95);
+      }
+
+      .dark .leaflet-control {
+        background-color: rgba(24, 24, 27, 0.95);
+        color: #f4f4f5;
+      }
+
+      .leaflet-bar {
+        background-color: rgba(255, 255, 255, 0.95);
+      }
+
+      .dark .leaflet-bar {
+        background-color: rgba(24, 24, 27, 0.95);
+      }
     `;
     document.head.appendChild(style);
 
@@ -255,6 +314,90 @@ export default function CCTVMap() {
       document.head.removeChild(style);
     };
   }, []);
+
+  // Handle search coordinates
+  useEffect(() => {
+    if (!targetCoordinates || !mapRef.current || !mapReady) return;
+
+    // targetCoordinates comes in [y, x] format from search
+    // We need to convert to our internal [x, y] format
+    const [inputY, inputX] = targetCoordinates;
+
+    console.log("=== SEARCH START ===");
+    console.log("Input coords (Y,X format):", { inputY, inputX });
+
+    // Convert to internal [x, y] format
+    const internalCoords: [number, number] = [inputX, inputY];
+    console.log("Internal coords (X,Y format):", internalCoords);
+
+    // VALIDATION
+    if (isNaN(inputX) || isNaN(inputY)) {
+      console.error("Invalid coordinates - not numbers");
+      setTargetCoordinates(null);
+      return;
+    }
+
+    // Store in internal format [x, y]
+    setSearchMarkerCoords(internalCoords);
+
+    // Use setTimeout to ensure marker is rendered before flying
+    setTimeout(() => {
+      if (mapRef.current) {
+        console.log("Flying to internal coords:", internalCoords);
+        try {
+          mapRef.current.flyTo(internalCoords, 4, {
+            duration: 1.5,
+            easeLinearity: 0.25,
+          });
+        } catch (error) {
+          console.error("FlyTo failed, using setView:", error);
+          mapRef.current.setView(internalCoords, 4);
+        }
+      }
+    }, 100);
+
+    // Clear search after delay
+    const clearSearchTimer = setTimeout(() => {
+      setTargetCoordinates(null);
+    }, 1600);
+
+    // Remove marker after delay
+    const clearMarkerTimer = setTimeout(() => {
+      setSearchMarkerCoords(null);
+    }, 10000);
+
+    return () => {
+      clearTimeout(clearSearchTimer);
+      clearTimeout(clearMarkerTimer);
+    };
+  }, [targetCoordinates, mapReady, setTargetCoordinates]);
+
+  // Debug: Log coordinate formats
+  useEffect(() => {
+    if (activeLocations.length > 0) {
+      // Find locations with negative coordinates
+      const negativeLocations = activeLocations.filter(
+        (loc) => loc.coordinates[0] < 0 || loc.coordinates[1] < 0,
+      );
+
+      if (negativeLocations.length > 0) {
+        console.log("Found CCTV locations with negative coordinates:");
+        negativeLocations.forEach((loc) => {
+          console.log(
+            `- ${loc.name}: [${loc.coordinates[0]}, ${loc.coordinates[1]}]`,
+          );
+        });
+      }
+
+      // Show first few locations for reference
+      console.log("First few CCTV locations (internal [X,Y] format):");
+      activeLocations.slice(0, 3).forEach((loc) => {
+        console.log(
+          `- ${loc.name}: X=${loc.coordinates[0].toFixed(1)}, Y=${loc.coordinates[1].toFixed(1)}`,
+        );
+      });
+    }
+  }, [activeLocations]);
 
   const getActiveTileUrl = () => {
     switch (activeLayer) {
@@ -334,8 +477,13 @@ export default function CCTVMap() {
                 <div className="leaflet-control leaflet-bar bg-white/95 dark:bg-zinc-900/95 backdrop-blur-sm p-3 rounded-lg shadow-lg m-4 border border-neutral-200 dark:border-zinc-800">
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <Layers size={16} className="text-neutral-600 dark:text-neutral-400" />
-                      <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Map Style</span>
+                      <Layers
+                        size={16}
+                        className="text-neutral-600 dark:text-neutral-400"
+                      />
+                      <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                        Map Style
+                      </span>
                     </div>
                     <div className="space-y-2">
                       {(["satellite", "atlas", "street", "grid"] as const).map(
@@ -355,7 +503,9 @@ export default function CCTVMap() {
                               }
                               className="text-indigo-600 focus:ring-indigo-500"
                             />
-                            <span className="text-sm capitalize text-neutral-700 dark:text-neutral-300">{style}</span>
+                            <span className="text-sm capitalize text-neutral-700 dark:text-neutral-300">
+                              {style}
+                            </span>
                           </label>
                         ),
                       )}
@@ -367,8 +517,8 @@ export default function CCTVMap() {
               {/* Markers with custom CCTV icon */}
               {activeLocations.map((location: CCTVLocation) => {
                 const coords: [number, number] = [
-                  location.coordinates[0],
-                  location.coordinates[1],
+                  location.coordinates[0], // X
+                  location.coordinates[1], // Y
                 ];
                 const colors = getColorForType(location.type);
 
@@ -376,7 +526,7 @@ export default function CCTVMap() {
                   <Marker
                     key={location.id}
                     position={coords}
-                    icon={customIcon} // Use the custom CCTV icon
+                    icon={customIcon}
                     eventHandlers={{
                       click: () => setActiveLocation(location),
                       mouseover: (e) => {
@@ -408,10 +558,10 @@ export default function CCTVMap() {
                         <div className="space-y-2 mt-3">
                           <div className="text-sm text-neutral-700 dark:text-neutral-300">
                             <span className="font-medium">
-                              GTA Coordinates:{" "}
+                              GTA Coordinates (X,Y):{" "}
                             </span>
                             <span className="font-mono text-xs">
-                              X: {location.coordinates[0].toFixed(1)}, Y:{" "}
+                              {location.coordinates[0].toFixed(1)},{" "}
                               {location.coordinates[1].toFixed(1)}
                             </span>
                           </div>
@@ -433,7 +583,77 @@ export default function CCTVMap() {
                 );
               })}
 
-              {/* Map Legend Removed */}
+              {/* Search location marker */}
+              {searchMarkerCoords && leafletLoaded && (
+                <Marker
+                  position={searchMarkerCoords}
+                  icon={leafletLoaded.icon({
+                    iconUrl: "/leaflet/images/marker-icon.png",
+                    iconRetinaUrl: "/leaflet/images/marker-icon-2x.png",
+                    shadowUrl: "/leaflet/images/marker-shadow.png",
+                    iconSize: [24, 40],
+                    iconAnchor: [12, 40],
+                    popupAnchor: [0, -40],
+                    className: "search-marker-icon",
+                  })}
+                  zIndexOffset={1000} // Ensure it's above CCTV markers
+                >
+                  <Popup className="search-marker-popup">
+                    <div className="p-3 min-w-56">
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="p-2 bg-blue-100 dark:bg-blue-300/30 rounded-lg">
+                          <MapPin
+                            className="text-blue-600 dark:text-blue-400"
+                            size={20}
+                          />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-sm text-neutral-900 dark:text-neutral-100">
+                            🔍 Search Location
+                          </h3>
+                          <Badge
+                            variant="outline"
+                            className="mt-1 text-xs border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400"
+                          >
+                            SEARCH RESULT
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <div>
+                          <div className="text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                            GTA Coordinates:
+                          </div>
+                          <div className="font-mono text-xs bg-neutral-100 dark:bg-neutral-800 p-2 rounded border border-neutral-200 dark:border-neutral-700">
+                            <div className="flex justify-between">
+                              <span className="text-neutral-600 dark:text-neutral-400">
+                                X:
+                              </span>
+                              <span className="text-neutral-900 dark:text-neutral-100">
+                                {searchMarkerCoords[0].toFixed(4)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between mt-1">
+                              <span className="text-neutral-600 dark:text-neutral-400">
+                                Y:
+                              </span>
+                              <span className="text-neutral-900 dark:text-neutral-100">
+                                {searchMarkerCoords[1].toFixed(4)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="pt-2 border-t border-neutral-200 dark:border-neutral-700">
+                          <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
+                            <AlertCircle size={10} />
+                            <span>Marker will disappear in 10 seconds</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Popup>
+                </Marker>
+              )}
             </MapContainer>
           </div>
         ) : (
