@@ -1,7 +1,7 @@
 // app/components/cctv-header.tsx
 "use client";
 
-import { Search, Bell, Sun, Moon, Camera } from "lucide-react";
+import { Search, Sun, Moon, Camera } from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { useCCTVStore } from "../stores/cctv-store";

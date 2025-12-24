@@ -5,7 +5,6 @@ import { CCTVLocation } from "@/stores/cctv-store";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
 import {
-  Shield,
   Copy,
   Activity,
   FileText,

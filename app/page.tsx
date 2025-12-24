@@ -1,7 +1,7 @@
 // app/page.tsx - Improved layout with premium design
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useCCTVStore } from "@/stores/cctv-store";
 import { rawCCTVData, convertRawLocations } from "./data/locations";
 import CCTVHeader from "@/components/cctv-header";
@@ -29,7 +29,7 @@ export default function HomePage() {
         <div className="absolute top-[40%] left-[40%] w-[30%] h-[30%] rounded-full bg-blue-400/20 blur-[100px]" />
       </div>
 
-      <div className="relative z-10 max-w-[1600px] mx-auto p-4 md:p-8 space-y-8">
+      <div className="relative z-10 max-w-400 mx-auto p-4 md:p-8 space-y-8">
         <CCTVHeader />
 
         {/* Filters Bar */}
@@ -40,13 +40,13 @@ export default function HomePage() {
         {/* Main Content */}
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
           {/* Map Section */}
-          <div className="rounded-2xl overflow-hidden shadow-xl border border-white/20 dark:border-white/5 h-[700px] xl:h-[800px]">
+          <div className="rounded-2xl overflow-hidden shadow-xl border border-white/20 dark:border-white/5 h-175 xl:h-200">
             <CCTVMap />
           </div>
 
           {/* List Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="h-[600px]">
+            <div className="h-150">
               <CCTVList />
             </div>
 

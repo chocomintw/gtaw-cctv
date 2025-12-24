@@ -34,7 +34,6 @@ const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), {
 
 // Import Leaflet CSS
 import "leaflet/dist/leaflet.css";
-import Image from "next/image";
 
 // EXACT transformation from original GTAW map
 const GTAW_CONFIG = {
@@ -47,7 +46,6 @@ const GTAW_CONFIG = {
     atlas: "mapStyles/styleAtlas/{z}/{x}/{y}.jpg",
     satellite: "mapStyles/styleSatelite/{z}/{x}/{y}.jpg",
     grid: "mapStyles/styleGrid/{z}/{x}/{y}.png",
-    street: "mapStyles/styleStreet/{z}/{x}/{y}.jpg",
   },
 
   attribution: "made by monster, george?, paz & chocomint",
@@ -72,7 +70,7 @@ export default function CCTVMap() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [customCRS, setCustomCRS] = useState<any>(null);
   const [activeLayer, setActiveLayer] = useState<
-    "satellite" | "atlas" | "street" | "grid"
+    "satellite" | "atlas" | "grid"
   >("satellite");
   const [mapReady, setMapReady] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -405,8 +403,6 @@ export default function CCTVMap() {
         return GTAW_CONFIG.tileUrls.satellite;
       case "atlas":
         return GTAW_CONFIG.tileUrls.atlas;
-      case "street":
-        return GTAW_CONFIG.tileUrls.street;
       case "grid":
         return GTAW_CONFIG.tileUrls.grid;
       default:
