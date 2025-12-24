@@ -482,7 +482,7 @@ export default function CCTVMap() {
                       </span>
                     </div>
                     <div className="space-y-2">
-                      {(["satellite", "atlas", "street", "grid"] as const).map(
+                      {(["satellite", "atlas", "grid"] as const).map(
                         (style) => (
                           <label
                             key={style}
