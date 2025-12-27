@@ -57,6 +57,47 @@ const GTAW_CONFIG = {
   maxNativeZoom: 5,
 };
 
+const getColorForType = (type: LocationType) => {
+  switch (type) {
+    case "gas":
+      return {
+        text: "text-orange-600 dark:text-orange-400",
+        border: "border-orange-300 dark:border-orange-800",
+        bg: "bg-orange-100 dark:bg-orange-900/30",
+      };
+    case "bank":
+      return {
+        text: "text-green-600 dark:text-green-400",
+        border: "border-green-300 dark:border-green-800",
+        bg: "bg-green-100 dark:bg-green-900/30",
+      };
+    case "clothing":
+      return {
+        text: "text-purple-600 dark:text-purple-400",
+        border: "border-purple-300 dark:border-purple-800",
+        bg: "bg-purple-100 dark:bg-purple-900/30",
+      };
+    case "ammunation":
+      return {
+        text: "text-red-600 dark:text-red-400",
+        border: "border-red-300 dark:border-red-800",
+        bg: "bg-red-100 dark:bg-red-900/30",
+      };
+    case "phone":
+      return {
+        text: "text-blue-600 dark:text-blue-400",
+        border: "border-blue-300 dark:border-blue-800",
+        bg: "bg-blue-100 dark:bg-blue-900/30",
+      };
+    default:
+      return {
+        text: "text-gray-600 dark:text-zinc-400",
+        border: "border-gray-300 dark:border-zinc-700",
+        bg: "bg-gray-100 dark:bg-zinc-800",
+      };
+  }
+};
+
 export default function CCTVMap() {
   const {
     filteredLocations,
@@ -86,47 +127,6 @@ export default function CCTVMap() {
     () => filteredLocations.filter((loc) => loc.enabled),
     [filteredLocations],
   );
-
-  const getColorForType = (type: LocationType) => {
-    switch (type) {
-      case "gas":
-        return {
-          text: "text-orange-600 dark:text-orange-400",
-          border: "border-orange-300 dark:border-orange-800",
-          bg: "bg-orange-100 dark:bg-orange-900/30",
-        };
-      case "bank":
-        return {
-          text: "text-green-600 dark:text-green-400",
-          border: "border-green-300 dark:border-green-800",
-          bg: "bg-green-100 dark:bg-green-900/30",
-        };
-      case "clothing":
-        return {
-          text: "text-purple-600 dark:text-purple-400",
-          border: "border-purple-300 dark:border-purple-800",
-          bg: "bg-purple-100 dark:bg-purple-900/30",
-        };
-      case "ammunation":
-        return {
-          text: "text-red-600 dark:text-red-400",
-          border: "border-red-300 dark:border-red-800",
-          bg: "bg-red-100 dark:bg-red-900/30",
-        };
-      case "phone":
-        return {
-          text: "text-blue-600 dark:text-blue-400",
-          border: "border-blue-300 dark:border-blue-800",
-          bg: "bg-blue-100 dark:bg-blue-900/30",
-        };
-      default:
-        return {
-          text: "text-gray-600 dark:text-zinc-400",
-          border: "border-gray-300 dark:border-zinc-700",
-          bg: "bg-gray-100 dark:bg-zinc-800",
-        };
-    }
-  };
 
   // Create custom CRS
   const createCustomCRS = useCallback(() => {
@@ -397,7 +397,7 @@ export default function CCTVMap() {
     }
   }, [activeLocations]);
 
-  const getActiveTileUrl = () => {
+  const getActiveTileUrl = useCallback(() => {
     switch (activeLayer) {
       case "satellite":
         return GTAW_CONFIG.tileUrls.satellite;
@@ -408,7 +408,156 @@ export default function CCTVMap() {
       default:
         return GTAW_CONFIG.tileUrls.satellite;
     }
-  };
+  }, [activeLayer]);
+
+  const mapCRS = useMemo(() => customCRS || (leafletLoaded ? leafletLoaded.CRS.Simple : null), [customCRS, leafletLoaded]);
+
+  // Memoize search marker
+  const searchMarker = useMemo(() => {
+    if (!searchMarkerCoords || !leafletLoaded) return null;
+    return (
+      <Marker
+        position={searchMarkerCoords}
+        icon={leafletLoaded.icon({
+          iconUrl: "/leaflet/images/marker-icon.png",
+          iconRetinaUrl: "/leaflet/images/marker-icon-2x.png",
+          shadowUrl: "/leaflet/images/marker-shadow.png",
+          iconSize: [24, 40],
+          iconAnchor: [12, 40],
+          popupAnchor: [0, -40],
+          className: "search-marker-icon",
+        })}
+        zIndexOffset={1000}
+      >
+        <Popup className="search-marker-popup">
+          <div className="p-3 min-w-56">
+            <div className="flex items-start gap-3 mb-3">
+              <div className="p-2 bg-blue-100 dark:bg-blue-300/30 rounded-lg">
+                <MapPin
+                  className="text-blue-600 dark:text-blue-400"
+                  size={20}
+                />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm text-neutral-900 dark:text-neutral-100">
+                  🔍 Search Location
+                </h3>
+                <Badge
+                  variant="outline"
+                  className="mt-1 text-xs border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400"
+                >
+                  SEARCH RESULT
+                </Badge>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <div className="text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                  GTA Coordinates:
+                </div>
+                <div className="font-mono text-xs bg-neutral-100 dark:bg-neutral-800 p-2 rounded border border-neutral-200 dark:border-neutral-700">
+                  <div className="flex justify-between">
+                    <span className="text-neutral-600 dark:text-neutral-400">
+                      X:
+                    </span>
+                    <span className="text-neutral-900 dark:text-neutral-100">
+                      {searchMarkerCoords[0].toFixed(4)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between mt-1">
+                    <span className="text-neutral-600 dark:text-neutral-400">
+                      Y:
+                    </span>
+                    <span className="text-neutral-900 dark:text-neutral-100">
+                      {searchMarkerCoords[1].toFixed(4)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="pt-2 border-t border-neutral-200 dark:border-neutral-700">
+                <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
+                  <AlertCircle size={10} />
+                  <span>Marker will disappear in 10 seconds</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Popup>
+      </Marker>
+    );
+  }, [searchMarkerCoords, leafletLoaded]);
+
+  // Memoize CCTV markers
+  const cctvMarkers = useMemo(() => {
+    if (!customIcon) return null;
+    return activeLocations.map((location: CCTVLocation) => {
+      const coords: [number, number] = [
+        location.coordinates[0],
+        location.coordinates[1],
+      ];
+      const colors = getColorForType(location.type);
+
+      return (
+        <Marker
+          key={location.id}
+          position={coords}
+          icon={customIcon}
+          eventHandlers={{
+            click: () => setActiveLocation(location),
+            mouseover: (e) => {
+              e.target.openPopup();
+            },
+            mouseout: (e) => {
+              e.target.closePopup();
+            },
+          }}
+        >
+          <Popup className="cctv-popup">
+            <div className="p-3 min-w-62.5">
+              <div className="flex items-start gap-3">
+                <div className={`p-2 ${colors.bg} rounded-lg`}>
+                  <Camera className={`${colors.text}`} size={20} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base mb-1 text-neutral-900 dark:text-neutral-100">
+                    {location.name}
+                  </h3>
+                  <Badge
+                    variant="outline"
+                    className={`mb-2 ${colors.text} ${colors.border}`}
+                  >
+                    {location.type.toUpperCase()}
+                  </Badge>
+                </div>
+              </div>
+              <div className="space-y-2 mt-3">
+                <div className="text-sm text-neutral-700 dark:text-neutral-300">
+                  <span className="font-medium">
+                    GTA Coordinates (X,Y):{" "}
+                  </span>
+                  <span className="font-mono text-xs">
+                    {location.coordinates[0].toFixed(1)},{" "}
+                    {location.coordinates[1].toFixed(1)}
+                  </span>
+                </div>
+                {location.description && (
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                    {location.description}
+                  </p>
+                )}
+                <div className="pt-2 border-t border-neutral-200 dark:border-neutral-800 text-xs text-neutral-500 dark:text-neutral-500">
+                  <div className="flex items-center gap-1">
+                    <Camera size={10} />
+                    CCTV Camera #{location.id}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Popup>
+        </Marker>
+      );
+    });
+  }, [activeLocations, customIcon, setActiveLocation]);
 
   if (!isClient) {
     return (
@@ -420,8 +569,6 @@ export default function CCTVMap() {
       </Card>
     );
   }
-
-  const mapCRS = customCRS || leafletLoaded?.CRS.Simple;
 
   return (
     <Card className="overflow-hidden h-full">
@@ -436,7 +583,7 @@ export default function CCTVMap() {
       </CardHeader>
       <CardContent className="p-0 h-full" ref={mapContainerRef}>
         {leafletLoaded && mapCRS && mapReady && customIcon ? (
-          <div className="h-full w-full" key={`map-${mapReady}`}>
+          <div className="h-full w-full">
             <MapContainer
               center={[-1500, -1000]} // Adjusted to center more on the city
               zoom={GTAW_CONFIG.initialZoom}
@@ -511,145 +658,10 @@ export default function CCTVMap() {
               </div>
 
               {/* Markers with custom CCTV icon */}
-              {activeLocations.map((location: CCTVLocation) => {
-                const coords: [number, number] = [
-                  location.coordinates[0], // X
-                  location.coordinates[1], // Y
-                ];
-                const colors = getColorForType(location.type);
-
-                return (
-                  <Marker
-                    key={location.id}
-                    position={coords}
-                    icon={customIcon}
-                    eventHandlers={{
-                      click: () => setActiveLocation(location),
-                      mouseover: (e) => {
-                        e.target.openPopup();
-                      },
-                      mouseout: (e) => {
-                        e.target.closePopup();
-                      },
-                    }}
-                  >
-                    <Popup className="cctv-popup">
-                      <div className="p-3 min-w-62.5">
-                        <div className="flex items-start gap-3">
-                          <div className={`p-2 ${colors.bg} rounded-lg`}>
-                            <Camera className={`${colors.text}`} size={20} />
-                          </div>
-                          <div>
-                            <h3 className="font-bold text-base mb-1 text-neutral-900 dark:text-neutral-100">
-                              {location.name}
-                            </h3>
-                            <Badge
-                              variant="outline"
-                              className={`mb-2 ${colors.text} ${colors.border}`}
-                            >
-                              {location.type.toUpperCase()}
-                            </Badge>
-                          </div>
-                        </div>
-                        <div className="space-y-2 mt-3">
-                          <div className="text-sm text-neutral-700 dark:text-neutral-300">
-                            <span className="font-medium">
-                              GTA Coordinates (X,Y):{" "}
-                            </span>
-                            <span className="font-mono text-xs">
-                              {location.coordinates[0].toFixed(1)},{" "}
-                              {location.coordinates[1].toFixed(1)}
-                            </span>
-                          </div>
-                          {location.description && (
-                            <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                              {location.description}
-                            </p>
-                          )}
-                          <div className="pt-2 border-t border-neutral-200 dark:border-neutral-800 text-xs text-neutral-500 dark:text-neutral-500">
-                            <div className="flex items-center gap-1">
-                              <Camera size={10} />
-                              CCTV Camera #{location.id}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </Popup>
-                  </Marker>
-                );
-              })}
+              {cctvMarkers}
 
               {/* Search location marker */}
-              {searchMarkerCoords && leafletLoaded && (
-                <Marker
-                  position={searchMarkerCoords}
-                  icon={leafletLoaded.icon({
-                    iconUrl: "/leaflet/images/marker-icon.png",
-                    iconRetinaUrl: "/leaflet/images/marker-icon-2x.png",
-                    shadowUrl: "/leaflet/images/marker-shadow.png",
-                    iconSize: [24, 40],
-                    iconAnchor: [12, 40],
-                    popupAnchor: [0, -40],
-                    className: "search-marker-icon",
-                  })}
-                  zIndexOffset={1000} // Ensure it's above CCTV markers
-                >
-                  <Popup className="search-marker-popup">
-                    <div className="p-3 min-w-56">
-                      <div className="flex items-start gap-3 mb-3">
-                        <div className="p-2 bg-blue-100 dark:bg-blue-300/30 rounded-lg">
-                          <MapPin
-                            className="text-blue-600 dark:text-blue-400"
-                            size={20}
-                          />
-                        </div>
-                        <div>
-                          <h3 className="font-bold text-sm text-neutral-900 dark:text-neutral-100">
-                            🔍 Search Location
-                          </h3>
-                          <Badge
-                            variant="outline"
-                            className="mt-1 text-xs border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400"
-                          >
-                            SEARCH RESULT
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="space-y-3">
-                        <div>
-                          <div className="text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-                            GTA Coordinates:
-                          </div>
-                          <div className="font-mono text-xs bg-neutral-100 dark:bg-neutral-800 p-2 rounded border border-neutral-200 dark:border-neutral-700">
-                            <div className="flex justify-between">
-                              <span className="text-neutral-600 dark:text-neutral-400">
-                                X:
-                              </span>
-                              <span className="text-neutral-900 dark:text-neutral-100">
-                                {searchMarkerCoords[0].toFixed(4)}
-                              </span>
-                            </div>
-                            <div className="flex justify-between mt-1">
-                              <span className="text-neutral-600 dark:text-neutral-400">
-                                Y:
-                              </span>
-                              <span className="text-neutral-900 dark:text-neutral-100">
-                                {searchMarkerCoords[1].toFixed(4)}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="pt-2 border-t border-neutral-200 dark:border-neutral-700">
-                          <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
-                            <AlertCircle size={10} />
-                            <span>Marker will disappear in 10 seconds</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </Popup>
-                </Marker>
-              )}
+              {searchMarker}
             </MapContainer>
           </div>
         ) : (
